@@ -12,13 +12,9 @@ import sqlite3
 
 PORTA = 5000
 con = sqlite3.connect("d:\\AA_Paolo_Martini\\scuolapaolo\\TPSIT\\2021-2022\\chat_di_classe\\datadase.db")#aprire un database = connettersi
-
+dizionario = {}
 def inserimento(nick, addr):
-    cur = con.cursor()
-    cur.execute(f"INSERT INTO utenti VALUES ('{nick}','{addr[0]}',{addr[1]})") #i text (stringhe) vanno separate da apici singoli
-    con.commit()
-    #dizionario[nik] = addr[0]
-    cur.close()
+    dizionario[nick] = addr[0]
     
 
 def richiestaADDR(nick):
@@ -48,21 +44,26 @@ def main():
     while True:
         data, addr = s.recvfrom(4096) #dati ricevuti(data), addr è una tupla con indirizzo ip del client e porta del client
         messaggio = data.decode()
-        print (messaggio)
+        print(messaggio)
         
-        if messaggio.split(":")[0].lower() == "nickname":
+        if "Nickname" in messaggio:
             inserimento(messaggio.split(":")[1], addr)
+            print(messaggio.split(":")[1])
             s.sendto("ok".encode(), addr)
         
-        if (messaggio.split(":")[0].lower() == "sender"):
+        if ("Sender" in messaggio):
             divisione = messaggio.split(",")
+            print(divisione)
             sender = divisione[0].split(":")[1]
+            print(sender)
             reciver = divisione[1].split(":")[1]
+            print(reciver)
             mess = divisione[2]
-            trovato, indirizzo = richiestaADDR(reciver)
-            if trovato:
-                print (f"Mando un messaggio a: {reciver} => {indirizzo[0]}")
-                #s.sendto(f"Da {sender}: {mess}".encode(), indirizzo)
+            print(mess)
+            
+            if reciver in dizionario:
+                print (f"Mando un messaggio a: {reciver} => {dizionario[reciver]}")
+                s.sendto(f"Da {sender}: {mess}".encode(), dizionario[reciver])
             else: 
                 print(f"ERRORE: {reciver} non trovato!")
 
